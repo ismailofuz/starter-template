@@ -18,9 +18,11 @@ export interface UserI {
 }
 
 export interface VerificationI {
-    user_id: number;
+    id: string;
+    phone: string;
     code: number;
-    expires_at: string;
+    expires_at: Date;
+    created_at: Date;
 }
 
 export interface MediaFileMetadataI {

@@ -1,9 +1,36 @@
+NODE_ENV=
+
 PORT=3000
+
 # DATABASE
-DB_TYPE=
-DB_USER=
-DB_PASSWORD=
-DB_NAME=
+DB_TYPE=postgres
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=postgres
 DB_PORT=
+
 JWT_SECRET=
 JWT_EXPIRES_IN=
+JWT_REFRESH_SECRET=
+JWT_REFRESH_EXPIRES_IN=
+
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_USER=default
+REDIS_PASSWORD=redis
+
+CACHE_TTL=60
+CACHE_CAPACITY=10000
+
+# SMS 
+SMS_EMAIL=
+SMS_PASSWORD=
+SMS_LOGIN_URL=https://notify.eskiz.uz/api/auth/login
+SMS_SEND_URL=https://notify.eskiz.uz/api/message/sms/send
+VERIFY_SMS=https://mentalaba.uz/ dan sizning tasdiqlash kodingiz:
+
+# mail
+MAIL_HOST=
+MAIL_USER=
+MAIL_PASSWORD=
+MAIL_FROM=

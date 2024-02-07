@@ -2,7 +2,7 @@ version: '3.7'
 services:
   postgres:
     env_file: .env
-    container_name: iiko-fd
+    container_name: starter_postgres_container
     image: postgres:latest
     environment:
       POSTGRES_DB: ${DB_NAME:-postgres}
@@ -11,10 +11,22 @@ services:
     volumes:
       - postgres:/data/postgres
     ports:
-      - '5430:5432'
+      - ${DB_PORT}:5432
     networks:
       - postgres
     restart: unless-stopped
+  redis:
+    env_file: .env
+    image: redis:latest
+    container_name: starter_redis_container
+    environment:
+      - REDIS_HOST=${REDIS_HOST:-localhost}
+      - REDIS_USER=${REDIS_USER:-default}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
+    ports:
+      - ${REDIS_PORT:-6379}:${REDIS_PORT:-6379}
+    networks:
+      - redis
 networks:
   postgres:
     driver: bridge
