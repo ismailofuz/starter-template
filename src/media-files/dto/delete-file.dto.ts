@@ -5,4 +5,4 @@ export class DeleteFileDto {
     @Type(() => String)
     @IsArray()
     path: string[];
-}	
+}
