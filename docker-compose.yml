@@ -24,7 +24,7 @@ services:
       - REDIS_USER=${REDIS_USER:-default}
       - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
     ports:
-      - ${REDIS_PORT:-6379}:${REDIS_PORT:-6379}
+      - ${REDIS_PORT}:${REDIS_PORT:-6379}
     networks:
       - redis
 networks:

@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectKnex, Knex } from 'nestjs-knex';
 import configuration from '../common/options/configuration';
-import { UserI, VerificationI } from 'src/common/types/interfaces';
+import { VerificationI } from 'src/common/types/interfaces';
 import { Redis } from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis/dist';
 import { MailSenderService } from '../mail-sender/mail-sender.service';
