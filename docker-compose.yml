@@ -1,36 +1,26 @@
-version: '3.7'
+version: '3.9'
+
 services:
   postgres:
-    env_file: .env
-    container_name: starter_postgres_container
-    image: postgres:latest
+    image: postgres:16
+    container_name: myapp_postgres
     environment:
       POSTGRES_DB: ${DB_NAME:-postgres}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - ${DB_PORT:-5432}:5432
     volumes:
-      - postgres:/data/postgres
-    ports:
-      - ${DB_PORT}:5432
-    networks:
-      - postgres
+      - /mnt/docker_volumes/myapp/postgres/data:/var/lib/postgresql/data
+      - /mnt/docker_volumes/myapp/postgres/logs:/var/log/postgresql
     restart: unless-stopped
+
   redis:
-    env_file: .env
     image: redis:latest
-    container_name: starter_redis_container
-    environment:
-      - REDIS_HOST=${REDIS_HOST:-localhost}
-      - REDIS_USER=${REDIS_USER:-default}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
+    container_name: myapp_redis
     ports:
-      - ${REDIS_PORT}:${REDIS_PORT:-6379}
-    networks:
-      - redis
-networks:
-  postgres:
-    driver: bridge
-  redis:
-    driver: bridge
-volumes:
-  postgres:
+      - ${REDIS_PORT:-6379}:6379
+    volumes:
+      - /mnt/docker_volumes/myapp/redis/data:/data
+      - /mnt/docker_volumes/myapp/redis/logs:/var/log/redis
+    restart: unless-stopped

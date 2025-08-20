@@ -31,7 +31,6 @@ dotenv.config();
                                     colorize: true,
                                     singleLine: true,
                                     levelFirst: false,
-                                    // ignore: 'hostname,res',
                                     translateTime: "yyyy-mm-dd'T'HH:MM:ss.l'Z'",
                                     messageFormat:
                                         '{req.headers.x-correlation-id} [{context}] {msg}',
@@ -61,7 +60,6 @@ dotenv.config();
                                 id: r.id,
                                 method: r.method,
                                 url: r.url,
-                                // jwt: r.headers.authorization,
                                 params: r.params,
                                 query: r.query,
                             };

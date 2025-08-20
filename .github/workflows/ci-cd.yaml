@@ -1,0 +1,125 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - pre-prod
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 20.x
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        env:
+          CI: true
+
+      - name: Run Lint
+        run: yarn lint
+        env:
+          CI: true
+
+      - name: Build
+        run: yarn build
+        env:
+          CI: true
+
+  pre-prod-deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/pre-prod'
+    environment: pre-production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Pre-Production
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEMO_HOST }}
+          username: ${{ secrets.DEMO_USERNAME }}
+          key: ${{ secrets.DEMO_KEY }}
+          port: ${{ secrets.SSH_PORT_CONSULTING }}
+          script: |
+            cd {app_path}
+            git pull origin pre-prod
+            export NODE_ENV=development
+            npx knex migrate:latest
+            yarn install
+            export NODE_ENV=production
+            yarn build
+            pm2 reload demo-pm2.config.js --wait-ready
+            curl -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
+            --header "Content-Type: application/json" \
+            --data-raw "{\"chat_id\": \"${{ secrets.CHAT_ID }}\", \"text\": \"✅ {app_domain} Deployed Successfully\"}"
+          debug: true
+
+  prod-deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Production
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST_CONSULTING }}
+          username: ${{ secrets.SSH_USERNAME_CONSULTING }}
+          key: ${{ secrets.SSH_KEY_CONSULTING }}
+          port: ${{ secrets.SSH_PORT_CONSULTING }}
+          script: |
+            cd {app_path}
+            git pull origin main
+            export NODE_ENV=development
+            npx knex migrate:latest
+            yarn install
+            export NODE_ENV=production
+            yarn build
+            pm2 reload pm2.config.js --update-env --wait-ready --env production
+            curl -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
+            --header "Content-Type: application/json" \
+            --data-raw "{\"chat_id\": \"${{ secrets.CHAT_ID }}\", \"text\": \"✅ {app_domain} Deployed Successfully\"}"
+          debug: true
+  notify-failure:
+    runs-on: ubuntu-latest
+    needs: [ build, pre-prod-deploy, prod-deploy ]
+    if: failure()
+    steps:
+      - name: Send Failure Notification
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST_CONSULTING }}
+          username: ${{ secrets.SSH_USERNAME_CONSULTING }}
+          key: ${{ secrets.SSH_KEY_CONSULTING }}
+          port: ${{ secrets.SSH_PORT_CONSULTING }}
+          script: |
+            curl -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
+            --header "Content-Type: application/json" \
+            --data-raw "{\"chat_id\": \"${{ secrets.CHAT_ID }}\", \"text\": \"❌ Pipeline Failed: ${{ github.workflow }} run #${{ github.run_number }} failed.\"}"

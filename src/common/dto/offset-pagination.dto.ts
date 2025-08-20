@@ -14,4 +14,4 @@ export class OffsetPaginationDto {
 
 export const offsetDefault = new OffsetPaginationDto();
 offsetDefault.offset = 0;
-offsetDefault.limit = 10;
+offsetDefault.limit = 20;
